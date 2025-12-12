@@ -3,10 +3,10 @@ main = "src/index.ts"
 compatibility_date = "2024-12-01"
 
 kv_namespaces = [
-  { binding = "EMBEDS_KV", id = "" },
-  { binding = "DOCS_KV", id = "" },
-  { binding = "API_KEYS_KV", id = "" },
-  { binding = "RATE_LIMIT_KV", id = "" }
+  { binding = "EMBEDS_KV", id = "6021e6ee4b1841bcbe46aea038304b59" },
+  { binding = "DOCS_KV", id = "c2341a17305b4673aadc0bb6d085895d" },
+  { binding = "API_KEYS_KV", id = "d4c0d52745474ee7a3f3a696326da7de" },
+  { binding = "RATE_LIMIT_KV", id = "e1f26b1337e846b1bd493258d8861992" }
 ]
 
 r2_buckets = [
