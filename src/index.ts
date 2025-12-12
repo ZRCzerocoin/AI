@@ -4,7 +4,6 @@
 // POST /chat    -> accepts { messages: [{role,content}], retrieve_docs: boolean } -> responds with streaming model output
 
 export interface Env {
-  R2_BUCKET: R2Bucket;
   EMBEDS_KV: KVNamespace;
   DOCS_KV: KVNamespace;
   API_KEYS_KV: KVNamespace;
