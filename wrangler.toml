@@ -9,8 +9,4 @@ kv_namespaces = [
   { binding = "RATE_LIMIT_KV", id = "e1f26b1337e846b1bd493258d8861992" }
 ]
 
-r2_buckets = [
-  { binding = "R2_BUCKET", bucket_name = "pdf-files" }
-]
-
 # Note: Do NOT add secrets here. Add WORKER_AI_KEY and WORKER_AI_ENDPOINT in Cloudflare Dashboard > Workers > Your Worker > Settings > Variables (Secrets)
