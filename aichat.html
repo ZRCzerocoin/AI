@@ -1,149 +1,306 @@
-<!DOCTYPE html>
+<!doctype html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Worker AI Chat</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NolUI — AI Chat Dashboard</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background: #1e1e2f;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+    :root{
+      --bg:#0f1724; --card:#0b1220; --muted:#9aa4b2; --accent:#6ee7b7; --glass: rgba(255,255,255,0.04);
+      --shadow: 0 10px 30px rgba(2,6,23,0.6);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071022 0%, #071827 60%);color:#e6eef8}
+    .app{max-width:1100px;margin:28px auto;padding:20px;display:grid;grid-template-columns:320px 1fr;gap:20px}/* Sidebar */
+.sidebar{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:700;color:#022}
+.title{font-size:18px;font-weight:700}
+.subtitle{font-size:13px;color:var(--muted);margin-top:2px}
+.new-chat{margin-top:14px;display:flex;gap:8px}
+.btn{background:var(--glass);border:none;padding:10px 12px;border-radius:10px;color:var(--muted);cursor:pointer}
+.btn.primary{background:linear-gradient(90deg,#0ea5b1,#60a5fa);color:#03111a}
 
-    header {
-      background: #28293d;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.5rem;
-      font-weight: bold;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
+.conversations{margin-top:18px;display:flex;flex-direction:column;gap:8px;max-height:56vh;overflow:auto;padding-right:6px}
+.conv{padding:10px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.03);display:flex;gap:10px;align-items:center;cursor:pointer}
+.conv.active{background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-color:rgba(255,255,255,0.04)}
+.conv .meta{flex:1}
+.small{font-size:12px;color:var(--muted)}
 
-    #chat-container {
-      flex: 1;
-      padding: 1rem;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      background: #1b1b2b;
-    }
+/* Main chat area */
+.main{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+.topbar{display:flex;align-items:center;justify-content:space-between}
+.controls{display:flex;gap:8px}
+.chat-window{flex:1;overflow:auto;padding:8px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border:1px dashed rgba(255,255,255,0.02)}
 
-    .message {
-      max-width: 70%;
-      padding: 0.75rem 1rem;
-      border-radius: 10px;
-      line-height: 1.4;
-      word-wrap: break-word;
-    }
+.msg{display:flex;gap:12px;padding:10px;border-radius:10px;margin-bottom:8px}
+.msg.user{justify-content:flex-end}
+.bubble{max-width:70%;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)}
+.bubble.user{background:linear-gradient(90deg,#022 60%, rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.03)}
+.avatar{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:700}
 
-    .user {
-      background: #4a90e2;
-      align-self: flex-end;
-    }
+.input-area{display:flex;gap:8px;align-items:center}
+textarea{flex:1;min-height:48px;resize:vertical;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+.tools{display:flex;gap:8px}
 
-    .ai {
-      background: #3c3c5c;
-      align-self: flex-start;
-    }
+.footer-note{font-size:13px;color:var(--muted);text-align:center;margin-top:6px}
 
-    footer {
-      display: flex;
-      gap: 0.5rem;
-      padding: 0.5rem;
-      background: #28293d;
-    }
+/* settings modal */
+.modal{position:fixed;inset:0;background:linear-gradient(0deg, rgba(0,0,0,0.55), rgba(0,0,0,0.55));display:none;align-items:center;justify-content:center}
+.modal.open{display:flex}
+.panel{width:720px;background:linear-gradient(180deg,#04101a,#061226);border-radius:12px;padding:18px;border:1px solid rgba(255,255,255,0.03)}
+label{font-size:13px;color:var(--muted);display:block;margin-top:8px}
+input[type=text]{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
 
-    input[type="text"] {
-      flex: 1;
-      padding: 0.75rem 1rem;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-      font-size: 1rem;
-    }
+.small-action{font-size:13px;color:var(--muted);cursor:pointer}
+.top-actions{display:flex;gap:8px;align-items:center}
 
-    button {
-      padding: 0.75rem 1rem;
-      border-radius: 10px;
-      border: none;
-      background: #4a90e2;
-      color: #fff;
-      font-weight: bold;
-      cursor: pointer;
-    }
+code{background:rgba(255,255,255,0.02);padding:2px 6px;border-radius:6px}
+pre{background:#041324;padding:10px;border-radius:8px;overflow:auto}
 
-    button:hover {
-      background: #357ABD;
-    }
+/* responsive */
+@media (max-width:900px){.app{grid-template-columns:1fr;}.sidebar{order:2}.main{order:1}}
+
   </style>
 </head>
 <body>
-  <header>Worker AI Chat</header>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">N</div>
+        <div>
+          <div class="title">NolUI — AI Dashboard</div>
+          <div class="subtitle">Chat with your Worker AI</div>
+        </div>
+      </div><div class="new-chat">
+    <button class="btn" id="clearBtn">Clear</button>
+    <button class="btn primary" id="newConvBtn">+ New</button>
+  </div>
 
-  <div id="chat-container"></div>
+  <div class="conversations" id="conversations"></div>
 
-  <footer>
-    <input type="text" id="user-input" placeholder="Type your message..." />
-    <button id="send-btn">Send</button>
-  </footer>
+  <div style="margin-top:18px;border-top:1px dashed rgba(255,255,255,0.03);padding-top:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="small">Settings</div>
+      <div class="small-action" id="openSettings">Open</div>
+    </div>
+    <div class="small" style="margin-top:8px">Endpoint:<br><code id="endpointShow"></code></div>
+  </div>
+</aside>
 
-  <script>
-    const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div style="font-weight:700">Conversation</div>
+      <div class="small" id="convSubtitle">New conversation</div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="downloadBtn">Download</button>
+      <button class="btn" id="settingsBtn">Settings</button>
+    </div>
+  </div>
 
-    // Store last 5 messages for context
-    let sessionMessages = [];
+  <div class="chat-window" id="chatWindow" aria-live="polite"></div>
 
-    function addMessage(text, sender) {
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'message ' + sender;
-      msgDiv.textContent = text;
-      chatContainer.appendChild(msgDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
+  <div class="input-area">
+    <textarea id="promptInput" placeholder="Type a message..." spellcheck="false"></textarea>
+    <div class="tools">
+      <button class="btn" id="sendBtn">Send</button>
+    </div>
+  </div>
+  <div class="footer-note">Tip: open Settings and paste your <code>WORKER_AI_KEY</code> (keeps in your browser). For production, use server-side proxy.</div>
+</main>
 
-    async function sendMessage() {
-      const message = userInput.value.trim();
-      if (!message) return;
+  </div>  <!-- settings modal -->  <div class="modal" id="modal">
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 style="margin:0">Settings</h3>
+        <div style="display:flex;gap:8px">
+          <div class="small-action" id="closeModal">Close</div>
+        </div>
+      </div><label>Worker Endpoint</label>
+  <input type="text" id="workerUrl" placeholder="https://your-worker.workers.dev" />
+  <label>Worker API Key (do NOT store in public repos)</label>
+  <input type="text" id="apiKey" placeholder="Paste your WORKER_AI_KEY here" />
 
-      addMessage(message, 'user');
-      sessionMessages.push({ role: 'user', content: message });
-      if (sessionMessages.length > 5) sessionMessages.shift();
-      userInput.value = '';
+  <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+    <button class="btn primary" id="saveSettings">Save</button>
+    <button class="btn" id="forgetKey">Forget Key</button>
+    <div style="flex:1" class="small">Endpoint and key are stored in your browser's localStorage for convenience.</div>
+  </div>
 
-      // Send session context to Worker
-      try {
-        const response = await fetch('https://nolui.nolspace.workers.dev', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            prompt: sessionMessages.map(m => `${m.role === 'user' ? 'User' : 'AI'}: ${m.content}`).join('\n')
-          })
-        });
+  <hr style="margin:14px 0;border-color:rgba(255,255,255,0.03)" />
+  <div class="small" style="line-height:1.5">
+    <strong>Security recommendations</strong>
+    <ul style="margin:6px 0 0 18px">
+      <li>Don't embed the key in public HTML. Use a server-side proxy for production.</li>
+      <li>Rotate your WORKER_AI_KEY regularly and store it in a secure secret store.</li>
+      <li>Consider using Cloudflare Access or short-lived tokens if you must expose an endpoint.</li>
+    </ul>
+  </div>
+</div>
 
-        const data = await response.json();
-        const aiText = data.response || "No response from AI.";
-        addMessage(aiText, 'ai');
+  </div>  <script>
+    // Basic helpers
+    const $ = sel => document.querySelector(sel);
+    const qs = sel => Array.from(document.querySelectorAll(sel));
 
-        sessionMessages.push({ role: 'ai', content: aiText });
-        if (sessionMessages.length > 5) sessionMessages.shift();
-      } catch (err) {
-        console.error(err);
-        addMessage("Error contacting AI.", 'ai');
-      }
-    }
+    // Storage keys
+    const STORAGE_KEY = 'nolui_chat_history_v1';
+    const SETTINGS_KEY = 'nolui_settings_v1';
 
+    // Defaults
+    const DEFAULTS = {
+      workerUrl: 'https://nolui.nolspace.workers.dev',
+      apiKey: ''
+    };
+
+    // App state
+    let state = {
+      conversations: [],
+      currentConv: null,
+      settings: loadSettings()
+    };
+
+    // DOM refs
+    const convList = $('#conversations');
+    const chatWindow = $('#chatWindow');
+    const promptInput = $('#promptInput');
+    const sendBtn = $('#sendBtn');
+    const newConvBtn = $('#newConvBtn');
+    const clearBtn = $('#clearBtn');
+    const modal = $('#modal');
+    const workerUrlInput = $('#workerUrl');
+    const apiKeyInput = $('#apiKey');
+    const saveSettingsBtn = $('#saveSettings');
+    const forgetKeyBtn = $('#forgetKey');
+    const endpointShow = $('#endpointShow');
+    const convSubtitle = $('#convSubtitle');
+
+    // Init
+    renderSettingsToUI();
+    state.conversations = loadConversations();
+    if (!state.conversations.length) createConversation();
+    else selectConversation(0);
+    renderConversations();
+
+    // Events
     sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMessage();
-    });
+    promptInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+    newConvBtn.addEventListener('click', () => { createConversation(); renderConversations(); selectConversation(0); });
+    clearBtn.addEventListener('click', () => { if(confirm('Clear all conversations?')) { state.conversations = []; saveConversations(); renderConversations(); createConversation(); selectConversation(0);} });
+
+    $('#openSettings').addEventListener('click', () => openModal());
+    $('#settingsBtn').addEventListener('click', () => openModal());
+    $('#closeModal').addEventListener('click', () => closeModal());
+    saveSettingsBtn.addEventListener('click', () => { saveSettingsFromUI(); closeModal(); });
+    forgetKeyBtn.addEventListener('click', () => { state.settings.apiKey=''; saveSettings(); renderSettingsToUI(); alert('Key removed from your browser storage.'); });
+    $('#downloadBtn').addEventListener('click', downloadConversation);
+
+    // Functions
+    function loadSettings(){
+      try{const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)||'null'); return Object.assign({}, DEFAULTS, s||{});}catch(e){return Object.assign({}, DEFAULTS);} }
+    function saveSettings(){ localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); renderSettingsToUI(); }
+    function renderSettingsToUI(){ workerUrlInput.value = state.settings.workerUrl || DEFAULTS.workerUrl; apiKeyInput.value = state.settings.apiKey || ''; endpointShow.textContent = state.settings.workerUrl || DEFAULTS.workerUrl; }
+    function saveSettingsFromUI(){ state.settings.workerUrl = (workerUrlInput.value||'').trim() || DEFAULTS.workerUrl; state.settings.apiKey = (apiKeyInput.value||'').trim(); saveSettings(); }
+
+    function loadConversations(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');}catch(e){return [];} }
+    function saveConversations(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.conversations)); }
+
+    function createConversation(){ const conv = { id: Date.now().toString(), title: 'New conversation', messages: [] }; state.conversations.unshift(conv); saveConversations(); renderConversations(); }
+    function selectConversation(idxOrId){ if(typeof idxOrId === 'number') state.currentConv = state.conversations[idxOrId]; else state.currentConv = state.conversations.find(c => c.id===idxOrId);
+      renderChat(); renderConversations(); }
+
+    function renderConversations(){ convList.innerHTML=''; state.conversations.forEach((c, i)=>{
+      const el = document.createElement('div'); el.className='conv' + (state.currentConv && state.currentConv.id===c.id? ' active':'');
+      el.innerHTML = `<div class="meta"><div style="font-weight:600">${escapeHtml(c.title)}</div><div class="small">${c.messages.length} messages</div></div>`;
+      el.addEventListener('click', ()=> selectConversation(c.id));
+      convList.appendChild(el);
+    })}
+
+    function renderChat(){ chatWindow.innerHTML = '';
+      if(!state.currentConv) return;
+      convSubtitle.textContent = state.currentConv.title || 'Conversation';
+      state.currentConv.messages.forEach(msg=>{
+        const wrapper = document.createElement('div'); wrapper.className = 'msg ' + (msg.role==='user' ? 'user':'' );
+        const avatar = document.createElement('div'); avatar.className='avatar'; avatar.textContent = msg.role === 'user' ? 'U' : 'A';
+        const bubble = document.createElement('div'); bubble.className = 'bubble ' + (msg.role==='user'? 'user':'');
+        bubble.innerHTML = renderMessageContent(msg.content);
+        if(msg.role === 'assistant'){
+          const tools = document.createElement('div'); tools.style.marginTop='8px';
+          const copyBtn = document.createElement('button'); copyBtn.className='btn'; copyBtn.textContent='Copy'; copyBtn.addEventListener('click', ()=>{ navigator.clipboard.writeText(msg.content); copyBtn.textContent='Copied'; setTimeout(()=>copyBtn.textContent='Copy',1200); });
+          tools.appendChild(copyBtn);
+          bubble.appendChild(tools);
+        }
+        wrapper.appendChild(avatar);
+        wrapper.appendChild(bubble);
+        chatWindow.appendChild(wrapper);
+      });
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function renderMessageContent(text){ if(!text) return '';
+      // very small markdown-like renderer: code fences + line breaks
+      const escaped = escapeHtml(text);
+      const withCode = escaped.replace(/```([\s\S]*?)```/g, function(m, p1){ return '<pre><code>'+p1.replace(/&/g,'&amp;')+'</code></pre>'; });return withCode.replace(/\n/g,'<br>');
+}
+
+function escapeHtml(s){ return s.replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'":"&#39;'}[c]; }); }
+
+async function sendMessage(){
+  const text = promptInput.value.trim(); if(!text) return;
+  if(!state.currentConv){ createConversation(); selectConversation(0); }
+  // push user message
+  const userMsg = { role:'user', content: text, ts: Date.now() };
+  state.currentConv.messages.push(userMsg);
+  saveConversations(); renderChat(); promptInput.value='';
+
+  // show assistant placeholder
+  const assistantMsg = { role:'assistant', content: '...', ts: Date.now() };
+  state.currentConv.messages.push(assistantMsg);
+  saveConversations(); renderChat();
+
+  // prepare request
+  const payload = { prompt: text };
+  const endpoint = state.settings.workerUrl || DEFAULTS.workerUrl;
+  const apiKey = state.settings.apiKey || '';
+
+  try{
+    const headers = { 'Content-Type':'application/json' };
+    if(apiKey) headers['Authorization'] = 'Bearer ' + apiKey;
+    const res = await fetch(endpoint, { method:'POST', headers, body: JSON.stringify(payload) });
+    if(!res.ok){
+      const txt = await res.text();
+      assistantMsg.content = 'Error: ' + res.status + ' - ' + txt;
+      saveConversations(); renderChat();
+      return;
+    }
+
+    // try to parse json
+    let data;
+    try{ data = await res.json(); }catch(e){ data = { result: await res.text() }; }
+
+    // common response shapes: { result }, { output }, string
+    const content = data.result || data.output || data.text || (typeof data === 'string' ? data : JSON.stringify(data));
+    assistantMsg.content = content;
+    saveConversations(); renderChat();
+  }catch(err){ assistantMsg.content = 'Network error: '+err.message; saveConversations(); renderChat(); }
+}
+
+function openModal(){ modal.classList.add('open'); }
+function closeModal(){ modal.classList.remove('open'); }
+
+function downloadConversation(){ if(!state.currentConv) return; const dataStr = JSON.stringify(state.currentConv, null, 2); const blob = new Blob([dataStr], {type:'application/json'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download = (state.currentConv.title||'conversation') + '.json'; a.click(); URL.revokeObjectURL(url); }
+
+// simple utilities
+function setTitleFromFirstMessage(conv){ if(conv && conv.messages && conv.messages.length){ conv.title = conv.messages[0].content.slice(0,60) } }
+
+// when saving conversations, update title
+const saveConversationsOriginal = saveConversations;
+saveConversations = function(){ state.conversations.forEach(setTitleFromFirstMessage); localStorage.setItem(STORAGE_KEY, JSON.stringify(state.conversations)); renderConversations(); }
+
   </script>
 </body>
 </html>
